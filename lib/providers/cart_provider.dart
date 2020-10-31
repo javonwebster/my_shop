@@ -60,6 +60,16 @@ class Cart with ChangeNotifier {
             price: price),
       );
     }
+    notifyListeners();
   }
-  notifyListeners();
+
+  void removeItem(String productId){
+    _items.remove(productId);
+    notifyListeners();
+  }
+
+  void clear(){
+    _items = {};//set items back to an empty map
+    notifyListeners();
+  }
 }
