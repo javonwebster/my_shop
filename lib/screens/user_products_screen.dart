@@ -10,13 +10,15 @@ class UserProductsScreen extends StatelessWidget {
   static const routeName = '/user-products';
 
   //since we are in a stateless widget we need to take in the context because it's not globally available
-  Future<void> _refreshProducts(BuildContext buildContext) async{
-    await Provider.of<Products>(buildContext, listen: false).fetchAndSetProducts();
+  Future<void> _refreshProducts(BuildContext buildContext) async {
+    await Provider.of<Products>(buildContext, listen: false)
+        .fetchAndSetProducts(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final productsData = Provider.of<Products>(context);
+    // final productsData = Provider.of<Products>(context);
+    print("rebuilding...");
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -32,24 +34,35 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProducts(context), //need to use an anonymous function
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: ListView.builder(
-            itemBuilder: (_, i) => Column(
-              children: [
-                UserProductItem(
-                  productsData.items[i].id,
-                  productsData.items[i].title,
-                  productsData.items[i].imageUrl,
-                ),
-                Divider(),
-              ],
-            ),
-            itemCount: productsData.items.length,
-          ),
-        ),
+      body: FutureBuilder(
+        future: _refreshProducts(context),
+        builder: (ctx, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RefreshIndicator(
+                    onRefresh: () => _refreshProducts(
+                        context), //need to use an anonymous function
+                    child: Consumer<Products>(
+                      builder: (ctx, productsData, _) => Padding(
+                        padding: EdgeInsets.all(8),
+                        child: ListView.builder(
+                          itemBuilder: (_, i) => Column(
+                            children: [
+                              UserProductItem(
+                                productsData.items[i].id,
+                                productsData.items[i].title,
+                                productsData.items[i].imageUrl,
+                              ),
+                              Divider(),
+                            ],
+                          ),
+                          itemCount: productsData.items.length,
+                        ),
+                      ),
+                    ),
+                  ),
       ),
     );
   }
